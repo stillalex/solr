@@ -26,7 +26,7 @@ import org.junit.Test;
 public class LBHttp2SolrClientTest extends SolrTestCase {
 
   /**
-   * Test method for {@link LBHttp2SolrClient.Builder#withTheseParamNamesInTheUrl(Set)} and {@link
+   * Test method for {@link LBHttp2SolrClient#getUrlParamNames()} and {@link
    * LBHttp2SolrClient#addQueryParams(String)}.
    *
    * <p>Validate that the query param keys passed in are used in the base <code>Http2SolrClient
@@ -41,16 +41,14 @@ public class LBHttp2SolrClientTest extends SolrTestCase {
     Set<String> queryParams = new HashSet<>(2);
     queryParams.add("param1");
 
-    try (Http2SolrClient http2Client = new Http2SolrClient.Builder(url).build();
-        LBHttp2SolrClient testClient =
-            new LBHttp2SolrClient.Builder(http2Client, url)
-                .withTheseParamNamesInTheUrl(queryParams)
-                .build()) {
+    try (Http2SolrClient http2Client =
+            new Http2SolrClient.Builder(url).withTheseParamNamesInTheUrl(queryParams).build();
+        LBHttp2SolrClient testClient = new LBHttp2SolrClient.Builder(http2Client, url).build()) {
 
       assertArrayEquals(
           "Wrong queryParams found in lb client.",
           queryParams.toArray(),
-          testClient.getQueryParams().toArray());
+          testClient.getUrlParamNames().toArray());
       assertArrayEquals(
           "Wrong queryParams found in base client.",
           queryParams.toArray(),
@@ -61,7 +59,7 @@ public class LBHttp2SolrClientTest extends SolrTestCase {
       assertArrayEquals(
           "Wrong queryParams found in lb client.",
           queryParams.toArray(),
-          testClient.getQueryParams().toArray());
+          testClient.getUrlParamNames().toArray());
       assertArrayEquals(
           "Wrong queryParams found in base client.",
           queryParams.toArray(),

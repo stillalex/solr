@@ -84,8 +84,6 @@ public abstract class LBSolrClient extends SolrClient {
   protected volatile ResponseParser parser;
   protected volatile RequestWriter requestWriter;
 
-  protected Set<String> urlParamNames = new HashSet<>();
-
   static {
     solrQuery.setRows(0);
     /**
@@ -317,40 +315,6 @@ public abstract class LBSolrClient extends SolrClient {
 
   protected ServerWrapper createServerWrapper(String baseUrl) {
     return new ServerWrapper(baseUrl);
-  }
-
-  /**
-   * @deprecated use {@link #getUrlParamNames()}
-   */
-  @Deprecated
-  public Set<String> getQueryParams() {
-    return getUrlParamNames();
-  }
-
-  public Set<String> getUrlParamNames() {
-    return urlParamNames;
-  }
-
-  /**
-   * Expert Method.
-   *
-   * @param urlParamNames set of param keys to only send via the query string
-   * @deprecated use {@link LBHttpSolrClient.Builder#withTheseParamNamesInTheUrl(Set)} instead
-   */
-  @Deprecated
-  public void setQueryParams(Set<String> urlParamNames) {
-    this.urlParamNames = urlParamNames;
-  }
-
-  /**
-   * This method should be removed as being able to add a query parameter isn't compatible with the
-   * idea that query params are an immutable property of a solr client.
-   *
-   * @deprecated use {@link LBHttpSolrClient.Builder#withTheseParamNamesInTheUrl(Set)} instead
-   */
-  @Deprecated
-  public void addQueryParams(String queryOnlyParam) {
-    this.urlParamNames.add(queryOnlyParam);
   }
 
   public static String normalize(String server) {

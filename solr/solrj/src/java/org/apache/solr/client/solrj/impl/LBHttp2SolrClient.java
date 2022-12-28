@@ -23,6 +23,7 @@ import java.net.ConnectException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -145,12 +146,10 @@ public class LBHttp2SolrClient extends LBSolrClient {
   }
 
   /**
-   * @deprecated use {@link LBHttp2SolrClient.Builder#withTheseParamNamesInTheUrl(Set)} instead
+   * @deprecated use an already setup Http2SolrClient instead
    */
-  @Override
   @Deprecated
   public void setQueryParams(Set<String> queryParams) {
-    super.setQueryParams(queryParams);
     this.http2SolrClient.setUrlParamNames(queryParams);
   }
 
@@ -158,13 +157,17 @@ public class LBHttp2SolrClient extends LBSolrClient {
    * This method should be removed as being able to add a query parameter isn't compatible with the
    * idea that query params are an immutable property of a solr client.
    *
-   * @deprecated use {@link LBHttp2SolrClient.Builder#withTheseParamNamesInTheUrl(Set)} instead
+   * @deprecated use an already setup Http2SolrClient instead
    */
-  @Override
   @Deprecated
   public void addQueryParams(String queryOnlyParam) {
-    super.addQueryParams(queryOnlyParam);
-    this.http2SolrClient.setUrlParamNames(getQueryParams());
+    Set<String> urlParamNames = new HashSet<>(this.http2SolrClient.getUrlParamNames());
+    urlParamNames.add(queryOnlyParam);
+    this.http2SolrClient.setUrlParamNames(urlParamNames);
+  }
+
+  public Set<String> getUrlParamNames() {
+    return this.http2SolrClient.getUrlParamNames();
   }
 
   public Cancellable asyncReq(Req req, AsyncListener<Rsp> asyncListener) {
@@ -315,7 +318,6 @@ public class LBHttp2SolrClient extends LBSolrClient {
     private final Http2SolrClient http2SolrClient;
     private final String[] baseSolrUrls;
     private int aliveCheckInterval = CHECK_INTERVAL;
-    private Set<String> queryParams = Set.of();
 
     public Builder(Http2SolrClient http2Client, String... baseSolrUrls) {
       this.http2SolrClient = http2Client;
@@ -337,24 +339,9 @@ public class LBHttp2SolrClient extends LBSolrClient {
       return this;
     }
 
-    /**
-     * Expert Method
-     *
-     * @param queryParams set of param keys that are only sent via the query string. Note that the
-     *     param will be sent as a query string if the key is part of this Set or the SolrRequest's
-     *     query params.
-     * @see org.apache.solr.client.solrj.SolrRequest#getQueryParams
-     */
-    public LBHttp2SolrClient.Builder withTheseParamNamesInTheUrl(Set<String> queryParams) {
-      this.queryParams = queryParams;
-      return this;
-    }
-
     public LBHttp2SolrClient build() {
       LBHttp2SolrClient solrClient =
           new LBHttp2SolrClient(this.http2SolrClient, Arrays.asList(this.baseSolrUrls));
-      solrClient.urlParamNames = this.queryParams;
-      this.http2SolrClient.urlParamNames = this.queryParams;
       solrClient.aliveCheckInterval = this.aliveCheckInterval;
       return solrClient;
     }
